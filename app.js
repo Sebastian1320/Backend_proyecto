@@ -42,11 +42,78 @@ app.get("/api/movies/random", async (req, res) => {
   }
 });
 
-// Obtener películas populares
+// 📈 Películas populares
 app.get("/api/movies/popular", async (req, res) => {
   try {
-    const response = await axios.get(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=es-MX`);
-    res.json(response.data.results);
+    const response = await axios.get(
+      `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=es-MX`
+    );
+    res.json({
+      id: response.data.id,
+      titulo: response.data.title,
+      imagen: response.data.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500${response.data.backdrop_path}`
+      : null,
+    }
+    );
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener películas populares" });
+  }
+});
+
+
+// 📈 Películas Top rated
+app.get("/api/movies/top", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/movie/top-rated?api_key=${API_KEY}&language=es-MX`
+    );
+    res.json({
+      id: response.data.id,
+      titulo: response.data.title,
+      imagen: response.data.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500${response.data.backdrop_path}`
+      : null,
+    }
+    );
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener películas populares" });
+  }
+});
+
+// 📈 Películas Upcoming
+app.get("/api/movies/upcoming", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=es-MX`
+    );
+    res.json({
+      id: response.data.id,
+      titulo: response.data.title,
+      imagen: response.data.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500${response.data.backdrop_path}`
+      : null,
+    }
+    );
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener películas populares" });
+  }
+});
+
+// 📈 Películas Now Playing
+app.get("/api/movies/playing", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/movie/now-playing?api_key=${API_KEY}&language=es-MX`
+    );
+    res.json({
+      id: response.data.id,
+      titulo: response.data.title,
+      imagen: response.data.backdrop_path
+      ? `https://image.tmdb.org/t/p/w500${response.data.backdrop_path}`
+      : null,
+    }
+    );
   } catch (err) {
     res.status(500).json({ error: "Error al obtener películas populares" });
   }
