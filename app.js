@@ -107,7 +107,32 @@ app.get("/api/movies/:id", async (req, res) => {
     res.status(500).json({ error: "Error al obtener detalles de la película" });
   }
 });
+app.get("/api/movie/:nombre", async (req, res) => {
+  const movieName = req.params.nombre;
 
+  try {
+    const busqueda = await axios.get(
+      `${BASE_URL}/search/movie?api_key=${API_KEY}&language=es-MX&query=${encodeURIComponent(movieName)}`
+    );
+
+    if (busqueda.data.results.length === 0) {
+      return res.status(404).json({ error: "Película no encontrada" });
+    }
+
+    const peliculas = busqueda.data.results.map((p) => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
+        : null,
+    }));
+
+    res.json(peliculas);
+  } catch (error) {
+    console.error("Error en búsqueda por nombre:", error.message);
+    res.status(500).json({ error: "Error al obtener película" });
+  }
+});
 // 🧍 Registro de usuario
 app.post("/api/auth/register", async (req, res) => {
   const { email, password } = req.body;
