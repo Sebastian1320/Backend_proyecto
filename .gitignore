@@ -1,0 +1,21 @@
+# No subir node_modules
+node_modules/
+
+# No subir archivo de entorno
+.env
+
+# No subir package-lock.json
+package-lock.json
+
+# Archivos de logs
+*.log
+
+# Directorios temporales
+tmp/
+dist/
+build/
+
+# Configuración de sistema y editor
+.DS_Store
+.vscode/
+.idea/

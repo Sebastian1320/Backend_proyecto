@@ -45,16 +45,22 @@ const auth = (req, res, next) => {
     return res.status(403).json({ error: "Token inválido" });
   }
 };
+// Obtener 10 películas aleatorias
 
-// 📽️ Obtener 10 películas aleatorias
 app.get("/api/movies/random", async (req, res) => {
   try {
+
+    
     const randomPage = Math.floor(Math.random() * 10) + 1;
+
     const response = await axios.get(
       `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=es-MX&page=${randomPage}`
     );
+
     const movies = response.data.results;
+
     const shuffled = movies.sort(() => 0.5 - Math.random()).slice(0, 10);
+
     const resumen = shuffled.map((movie) => ({
       id: movie.id,
       titulo: movie.title,
@@ -62,6 +68,7 @@ app.get("/api/movies/random", async (req, res) => {
         ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
         : null,
     }));
+
     res.json(resumen);
   } catch (error) {
     console.error("Error en /random:", error.message);
@@ -75,39 +82,42 @@ app.get("/api/movies/popular", async (req, res) => {
     const response = await axios.get(
       `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=es-MX`
     );
-    const movies = response.data.results;
-    const resumen = movies.map((movie) => ({
-      id: movie.id,
-      titulo: movie.title,
-      imagen: movie.backdrop_path
-        ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
+    const peliculas = response.data.results.map(p => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
         : null,
     }));
-    res.json(resumen);
+
+    res.json(peliculas);
   } catch (err) {
+    console.log("Hubo un error", err);
     res.status(500).json({ error: "Error al obtener películas populares" });
   }
 });
+
+
 // 📈 Películas Top rated
 app.get("/api/movies/top", async (req, res) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=es-MX`
     );
-    const movies = response.data.results;
-    const resumen = movies.map((movie) => ({
-      id: movie.id,
-      titulo: movie.title,
-      imagen: movie.backdrop_path
-        ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
+    const peliculas = response.data.results.map(p => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
         : null,
     }));
-    res.json(resumen);
+
+    res.json(peliculas);
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener películas populares" });
+    console.log("Hubo un error", err);
+    res.status(500).json({ error: "Error al obtener películas top" });
   }
 });
-
 
 // 📈 Películas Upcoming
 app.get("/api/movies/upcoming", async (req, res) => {
@@ -115,20 +125,20 @@ app.get("/api/movies/upcoming", async (req, res) => {
     const response = await axios.get(
       `${BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=es-MX`
     );
-    const movies = response.data.results;
-    const resumen = movies.map((movie) => ({
-      id: movie.id,
-      titulo: movie.title,
-      imagen: movie.backdrop_path
-        ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
+    const peliculas = response.data.results.map(p => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
         : null,
     }));
-    res.json(resumen);
+
+    res.json(peliculas);
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener películas populares" });
+    console.log("Hubo un error", err);
+    res.status(500).json({ error: "Error al obtener películas próximas" });
   }
 });
-
 
 // 📈 Películas Now Playing
 app.get("/api/movies/playing", async (req, res) => {
@@ -136,23 +146,25 @@ app.get("/api/movies/playing", async (req, res) => {
     const response = await axios.get(
       `${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=es-MX`
     );
-    const movies = response.data.results;
-    const resumen = movies.map((movie) => ({
-      id: movie.id,
-      titulo: movie.title,
-      imagen: movie.backdrop_path
-        ? `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`
+    const peliculas = response.data.results.map(p => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
         : null,
     }));
-    res.json(resumen);
+
+    res.json(peliculas);
+    
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener películas populares" });
+    console.log("Hubo un error", err);
+    res.status(500).json({ error: "Error al obtener películas en cartelera" });
   }
 });
 
-// 🧾 Detalles de película por ID
 app.get("/api/movies/:id", async (req, res) => {
   const movieId = req.params.id;
+
   try {
     const [details, videos, images] = await Promise.all([
       axios.get(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=es-MX`),
@@ -170,7 +182,46 @@ app.get("/api/movies/:id", async (req, res) => {
       puntuacion: details.data.vote_average,
       descripcion: details.data.overview,
       trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-      imagenes: images.data.backdrops.slice(0, 5),
+      imagenes: images.data.backdrops.slice(0, 5), // 5 imágenes
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener detalles de la película" });
+  }
+});
+
+app.get("/api/movie/:nombre", async (req, res) => {
+  const movieName = req.params.nombre;
+
+  try {
+    // Buscar la película por nombre
+    const busqueda = await axios.get(
+      `${BASE_URL}/search/movie?api_key=${API_KEY}&language=es-MX&query=${encodeURIComponent(movieName)}`
+    );
+
+    if (busqueda.data.results.length === 0) {
+      return res.status(404).json({ error: "Película no encontrada" });
+    }
+
+    const movieId = busqueda.data.results[0].id;
+
+  
+    const [details, videos, images] = await Promise.all([
+      axios.get(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=es-MX`),
+      axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=es-MX`),
+      axios.get(`${BASE_URL}/movie/${movieId}/images?api_key=${API_KEY}`),
+    ]);
+
+    const trailer = videos.data.results.find(
+      (v) => v.type === "Trailer" && v.site === "YouTube"
+    );
+
+    res.json({
+      id: details.data.id,
+      titulo: details.data.title,
+      puntuacion: details.data.vote_average,
+      descripcion: details.data.overview,
+      trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
+      imagenes: images.data.backdrops.slice(0, 5), // 5 imágenes
     });
   } catch (error) {
     res.status(500).json({ error: "Error al obtener detalles de la película" });
@@ -243,10 +294,12 @@ app.delete("/api/user/favoritos", auth, async (req, res) => {
   }
 });
 
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor en ejecución en http://localhost:${PORT}`);
 });
+// si
 
 app.get("/api/user/verificar/:movieId", auth, async (req, res) => {
   const { movieId } = req.params;
