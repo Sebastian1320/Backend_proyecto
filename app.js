@@ -271,17 +271,37 @@ app.get("/api/auth/verify", auth, (req, res) => {
 // ➕ Agregar favorito
 app.put("/api/user/favoritos", auth, async (req, res) => {
   const { movieId } = req.body;
+
+  if (!movieId) {
+    return res.status(400).json({ error: "Falta movieId en el cuerpo de la solicitud" });
+  }
+
   try {
     const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    if (!user.favoritos) {
+      user.favoritos = []; 
+    }
+
     if (!user.favoritos.includes(movieId)) {
       user.favoritos.push(movieId);
       await user.save();
+      console.log(`Película ${movieId} agregada a favoritos del usuario ${req.userId}`);
+    } else {
+      console.log(`Película ${movieId} ya estaba en favoritos`);
     }
+
     res.json({ favoritos: user.favoritos });
-  } catch {
+  } catch (err) {
+    console.error("Error al agregar favorito:", err);
     res.status(500).json({ error: "Error al agregar favorito" });
   }
 });
+
 
 // ➖ Eliminar favorito
 app.delete("/api/user/favoritos", auth, async (req, res) => {
@@ -316,3 +336,15 @@ app.get("/api/user/verificar/:movieId", auth, async (req, res) => {
     res.status(500).json({ error: "Error al verificar favorito" });
   }
 });
+
+//peliculas favoritas del usuario
+
+app.get("/api/user/favoritos", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    res.json({ favoritos: user.favoritos || [] });
+  } catch {
+    res.status(500).json({ error: "Error al obtener favoritos" });
+  }
+});
+
