@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 dotenv.config();
 const app = express();
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const API_KEY = process.env.TMDB_API_KEY;
@@ -18,9 +19,10 @@ const BASE_URL = "https://api.themoviedb.org/3";
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB conectado");
-    app.listen(PORT, () => {
-      console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    });
+    app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor en ejecución en http://0.0.0.0:${PORT}`);
+});
+
   })
   .catch(err => console.error("Error conectando a MongoDB:", err));
 
