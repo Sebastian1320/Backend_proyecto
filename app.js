@@ -191,11 +191,11 @@ app.get("/api/movies/:id", async (req, res) => {
   }
 });
 
+
 app.get("/api/movie/:nombre", async (req, res) => {
   const movieName = req.params.nombre;
 
   try {
-    // Buscar la película por nombre
     const busqueda = await axios.get(
       `${BASE_URL}/search/movie?api_key=${API_KEY}&language=es-MX&query=${encodeURIComponent(movieName)}`
     );
@@ -204,29 +204,18 @@ app.get("/api/movie/:nombre", async (req, res) => {
       return res.status(404).json({ error: "Película no encontrada" });
     }
 
-    const movieId = busqueda.data.results[0].id;
+    const peliculas = busqueda.data.results.map((p) => ({
+      id: p.id,
+      titulo: p.title,
+      imagen: p.backdrop_path
+        ? `https://image.tmdb.org/t/p/w500${p.backdrop_path}`
+        : null,
+    }));
 
-  
-    const [details, videos, images] = await Promise.all([
-      axios.get(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=es-MX`),
-      axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=es-MX`),
-      axios.get(`${BASE_URL}/movie/${movieId}/images?api_key=${API_KEY}`),
-    ]);
-
-    const trailer = videos.data.results.find(
-      (v) => v.type === "Trailer" && v.site === "YouTube"
-    );
-
-    res.json({
-      id: details.data.id,
-      titulo: details.data.title,
-      puntuacion: details.data.vote_average,
-      descripcion: details.data.overview,
-      trailer: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-      imagenes: images.data.backdrops.slice(0, 5), // 5 imágenes
-    });
+    res.json(peliculas);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener detalles de la película" });
+    console.error("Error en búsqueda por nombre:", error.message);
+    res.status(500).json({ error: "Error al obtener película" });
   }
 });
 
@@ -306,14 +295,19 @@ app.put("/api/user/favoritos", auth, async (req, res) => {
 // ➖ Eliminar favorito
 app.delete("/api/user/favoritos", auth, async (req, res) => {
   const { movieId } = req.body;
+
   try {
     const user = await User.findById(req.userId);
-    user.favoritos = user.favoritos.filter((id) => id !== movieId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    user.favoritos = user.favoritos.filter((id) => id.toString() !== movieId);
     await user.save();
+
     res.json({ favoritos: user.favoritos });
-  } catch {
-    res.status(500).json({ error: "Error al eliminar favorito" });
-  }
+  } catch (error) {
+    console.error("Error al eliminar favorito:", error);
+    res.status(500).json({ error: "Error al eliminar favorito" });
+  }
 });
 
 
